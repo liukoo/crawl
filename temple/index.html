@@ -7,6 +7,12 @@
     <link href="http://lib.sinaapp.com/js/bootstrap/2.3.1/css/bootstrap.min.css"  rel="stylesheet" media="screen">
     <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js" type="text/javascript"></script>
     <script src="http://lib.sinaapp.com/js/bootstrap/2.3.1/js/bootstrap.min.js" type="text/javascript"></script>
+    <!--[if lte IE 6]>
+  <!-- bsie css 补丁文件 -->
+  <link rel="stylesheet" type="text/css" href="/static/bootstrap-ie6.min.css">
+  <!-- bsie 额外的 css 补丁文件 -->
+  <link rel="stylesheet" type="text/css" href="/static/ie.css">
+  <![endif]-->
     <title>店铺数据分析工具</title>
 </head>
 <style>
@@ -50,7 +56,7 @@
         padding-bottom: 0px\9;
 
       }
-    .container{background:url(/static/bg.png);height:364px;width:975px;}
+    .container{background:url(/static/bg.png) no-repeat;height:364px;width:975px;}
     .center{margin: 0 auto; text-align: center;}
     .form-signin{margin-left:508px;background: none; width:250px;height:308px;}
 </style>
@@ -64,10 +70,14 @@
         <input type="text" class="input-block-level" placeholder="邮箱地址" name="mail_address" id="mail_address">
         <input type="hidden" name="act" value="login">
 
-        <button class="btn btn-large btn-primary" type="button" id="submit">提交</button>
+        <button class="btn btn-large btn-primary" type="button" id="submit"  data-loading-text="提交中...">提交</button>
       </form>
-
-      <div id="alert" class="modal hide fade">
+<div class="alert alert-info">
+    <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <strong>店铺销量分析工具</strong>
+            Designed by:liukoo
+          </div>
+      <div id="alert" class="modal fade hide">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3>提醒</h3>
@@ -89,23 +99,38 @@
          function submit(){
              var u = $("#store_url").val();
              var m = $("#mail_address").val();
+             var btn = $("#submit");
+             if (u=='' || m==''){
+                 alert('请填写完整信息后再提交')
+                 return 0;
+             }
              $.ajax({
                         type: "POST",
                         url: "./add_task",
                         dataType:'json',
                         data: {store_url:u,mail_address:m},
-                        beforeSend: function () {},
+                        beforeSend: function () {btn.button('loading');},
                         success: function (data) {
                                  if(data.status=="ok"){
                                         $("#alert").modal();
                                  }else{
-                                       alert('任务提交失败');
+                                       alert(data.msg);
                                  }
+                            btn.button('reset');
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                //alert(XMLHttpRequest.status);
+                                //alert(XMLHttpRequest.readyState);
+                                alert(textStatus);
+                                btn.button('reset');
                         }
               });
          }
      </script>
-
+<!--[if lte IE 6]>
+  <!-- bsie js 补丁只在IE6中才执行 -->
+  <script type="text/javascript" src="/static/bootstrap-ie.js"></script>
+<![endif]-->
  </div> <!-- /container -->
 </body>
 </html>
