@@ -8,15 +8,17 @@
     <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js" type="text/javascript"></script>
     <script src="http://lib.sinaapp.com/js/bootstrap/2.3.1/js/bootstrap.min.js" type="text/javascript"></script>
     <!--[if lte IE 6]>
-  <!-- bsie css 补丁文件 -->
-  <link rel="stylesheet" type="text/css" href="/static/bootstrap-ie6.min.css">
-  <!-- bsie 额外的 css 补丁文件 -->
-  <link rel="stylesheet" type="text/css" href="/static/ie.css">
-  <![endif]-->
+      <!-- bsie css 补丁文件 -->
+      <link rel="stylesheet" type="text/css" href="{% url static %}js/bootstrap-ie6.min.css">
+      <!-- bsie 额外的 css 补丁文件 -->
+      <link rel="stylesheet" type="text/css" href="/static/css/ie.css">
+    <![endif]-->
     <title>店铺数据分析工具</title>
 </head>
 <style>
     body{ padding-top:100px;}
+    #inputlist input,#address{width:400px;}
+    #btn2{margin-top:40px;float: right;margin-top:20px\9;}
     .fixed{
     position:absolute;
     left:0;
@@ -56,26 +58,51 @@
         padding-bottom: 0px\9;
 
       }
-    .container{background:url(/static/bg.png) no-repeat;height:364px;width:975px;}
+    .container{background:url({% url static %}image/bg.png) no-repeat;height:364px;width:975px;}
     .center{margin: 0 auto; text-align: center;}
-    .form-signin{margin-left:508px;background: none; width:250px;height:308px;}
+    .form-signin{margin-left:508px;background: none; width:250px;height:308px;_width:240px;_height:280px;}
 </style>
 <body>
  <div class="container">
       <form class="form-signin"  method="POST" action="./add_task">
-        <div class="form-signin-heading center" style=""><img src="/static/logo.png" style="width:80px;height:80px;"/></div>
+        <div class="form-signin-heading center" style=""><img src="{% url static %}image/logo.png" style="width:80px;height:80px;"/></div>
         <label for="username">店铺地址</label>
         <input type="text" class="input-block-level" placeholder="店铺地址" name="store_url" id="store_url">
          <label for="password">您的邮箱</label>
         <input type="text" class="input-block-level" placeholder="邮箱地址" name="mail_address" id="mail_address">
         <input type="hidden" name="act" value="login">
 
-        <button class="btn btn-large btn-primary" type="button" id="submit"  data-loading-text="提交中...">提交</button>
+        <button class="btn  btn-primary" type="button" id="submit"  data-loading-text="提交中...">提交</button>
+        <div id="btn2"><a class="btn" data-toggle="modal" data-target="#myModal"><i class="icon-signal"></i>批量添加任务</a></div>
       </form>
+        <!-- Button to trigger modal -->
+
+        <!-- 批量提交 -->
+                <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="myModalLabel">批量提交任务</h3>
+                  </div>
+                  <div class="modal-body">
+                    <p><i class="icon-home"></i>店铺地址&nbsp;<a href="#" id="add_input_label">添加<i class="icon-plus"></i></a></p>
+                    <div id="inputlist">
+                        <input type="text" class="input-block-level" placeholder="店铺地址" name="store_url[]" >
+                        <input type="text" class="input-block-level" placeholder="店铺地址" name="store_url[]" >
+                        <input type="text" class="input-block-level" placeholder="店铺地址" name="store_url[]" >
+                    </div>
+                     <label for="address"><i class="icon-envelope"></i>您的邮箱</label>
+                     <input type="text" class="input-block-level" placeholder="邮箱地址" id="address" name="mail_address">
+                  </div>
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>
+                    <button class="btn btn-primary" id="many_submit">提交</button>
+                  </div>
+                </div>
+        <!--批量提交end -->
 <div class="alert alert-info">
     <a class="close" data-dismiss="alert" href="#">&times;</a>
-            <strong>店铺销量分析工具</strong>
-            Designed by:liukoo
+            <strong>店铺数据分析工具</strong>
+            Version :{{ VERSION }} Last:{{ LAST }}
           </div>
       <div id="alert" class="modal fade hide">
       <div class="modal-header">
@@ -91,24 +118,41 @@
       </div>
     </div>
      <script>
-         $("#submit").click(
+         $(function(){
+              $("#submit").click(
                  function(){
                      submit();
                  }
-         );
+              );
+             $("#many_submit").click(
+                 function(){
+                     many_submit();
+                 }
+              );
+             $("#add_input_label").click(function(){
+                  add_input();
+             });
+
+         });
+
          function submit(){
              var u = $("#store_url").val();
              var m = $("#mail_address").val();
              var btn = $("#submit");
+             var json_obj = {
+                address:m,
+				urls: [{'url':u}]
+				};
              if (u=='' || m==''){
                  alert('请填写完整信息后再提交')
                  return 0;
              }
+             var json_str = JSON.stringify(json_obj);    //将JSON对象转变成JSON格式的字符串
              $.ajax({
                         type: "POST",
-                        url: "./add_task",
+                        url: "{% url add_task %}",
                         dataType:'json',
-                        data: {store_url:u,mail_address:m},
+                        data: {data:json_str},
                         beforeSend: function () {btn.button('loading');},
                         success: function (data) {
                                  if(data.status=="ok"){
@@ -126,10 +170,54 @@
                         }
               });
          }
+
+         //添加input
+         function add_input(){
+             var obj = $("#inputlist");
+             var temp = '<input type="text" class="input-block-level" placeholder="店铺地址" name="store_url[]" class="width">';
+             obj.append(temp);
+         }
+
+         //批量提交任务
+         function many_submit(){
+             var obj =$("#inputlist input");
+             var json_obj = {
+                address:$("#address").val(),
+				urls: []
+				};
+             obj.each(function(){
+                 var json = {}
+                 if($(this).val()!=''){
+                     json.url=$(this).val();
+                     json_obj.urls.push(json);
+                 }
+             });
+		    var json_str = JSON.stringify(json_obj);    //将JSON对象转变成JSON格式的字符串
+             $.ajax({
+                        type: "POST",
+                        url: "{% url add_task %}",
+                        dataType:'json',
+                        data: {data:json_str},
+                        //beforeSend: function () {btn.button('loading');},
+                        success: function (data) {
+                                  if(data.status=="ok"){
+                                        $("#alert").modal();
+                                 }else{
+                                       alert(data.msg);
+                                  }
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                //alert(XMLHttpRequest.status);
+                                //alert(XMLHttpRequest.readyState);
+                                alert(textStatus);
+
+                        }
+              });
+         }
      </script>
 <!--[if lte IE 6]>
   <!-- bsie js 补丁只在IE6中才执行 -->
-  <script type="text/javascript" src="/static/bootstrap-ie.js"></script>
+  <script type="text/javascript" src="{% url static %}js/bootstrap-ie.js"></script>
 <![endif]-->
  </div> <!-- /container -->
 </body>

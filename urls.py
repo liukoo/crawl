@@ -15,7 +15,7 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     #(r'^index/$', include(index)),
-     (r'^static/.*$','django.views.static.serve',{'document_root':settings.STATICFILES_DIRS}),
-     (r"^add_task/?$",add_task),
-     ('^.*$', index),
+     url(r'^static/.*$','django.views.static.serve',{'document_root':settings.STATICFILES_DIRS},name='static'),
+     url(r"^add_task/?$",add_task,name='add_task'),
+     url('^.*$', index),
 )
