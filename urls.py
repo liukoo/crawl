@@ -11,7 +11,7 @@ urlpatterns = patterns('',
     # url(r'^crawl/', include('crawl.foo.urls')),
 
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
+    #liukoo
     # Uncomment the next line to enable the admin:
     #(r'^index/$', include(index)),
      url(r'^static/.*$','django.views.static.serve',{'document_root':settings.STATICFILES_DIRS},name='static'),
